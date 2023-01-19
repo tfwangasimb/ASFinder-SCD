@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+
+const finder = require("../src/find_polyX.js");
+const fasta_util = require("../src/fasta_util.js");
+const { ArgvParser } = require("../src/ArgvParser.js");
+
+const argv_parser = new ArgvParser(process.argv);
+
+const min_num_AA = argv_parser.get(/--n=(\d+)/, (arg, args) => Number(args[0]));
+const AA_list =    argv_parser.get(/--x=([A-Za-z\/]+)/, (arg, args) => String(args[0]));
+const input_fa =   argv_parser.get(/--i=(.+)/, (arg, args) => String(args[0]));
+
+if (min_num_AA >= 4 && AA_list && input_fa) {
+	console.log("argv", {
+		"--n": min_num_AA,
+		"--x": AA_list,
+		"--i": input_fa,
+	});
+	const header = [
+		"sequence name",
+		"type",
+		"num_AA",
+		"start",
+		"end",
+		"fragment length",
+		"fragment",
+	].join("\t");
+	console.log(header);
+
+	Object.values(fasta_util.readFasta_Ex(input_fa)).forEach(data => {
+		let results = [];
+
+		if (AA_list.length == 1) {
+			results = finder.any_polyAA_impure(data.seq, min_num_AA, AA_list);
+		}
+		else {
+			results = finder.any_polyXX_impure(data.seq, min_num_AA, AA_list.split("/"));
+		}
+
+		results.forEach(a => {
+			console.log([
+				data.header,   //sequence  name
+				a.type,        // type
+				// a.is_pure,  //
+				a.num_AA,      // num_AA
+				a.index + 1,   // start
+				a.end_idx + 1, // end
+				a.length,      // fragment length
+				a.frag,        // fragment
+			].join("\t"));
+		});
+	});
+}
+else {
+	// ASFinder-polyX --n=4 --x=Q --i=a.fa
+	console.log("ASFinder-polyX");
+	console.log("Usage: ASFinder-polyX");
+	console.log("\t--n: minimum number of (X) residues to be found in a local region, value >= 4");
+	console.log("\t--x: which amino acid will be found. Example: Q, Q/N");
+	console.log("\t--i: input fasta");
+	console.log("got", {
+		"--n": min_num_AA,
+		"--x": AA_list,
+		"--i": input_fa,
+		argv: process.argv,
+	});
+}

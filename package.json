@@ -1,0 +1,15 @@
+{
+	"name": "as-finder-scd",
+	"version": "0.1.0",
+	"description": "ASFinder-SCD",
+	"homepage": "https://github.com/tfwangasimb/ASFinder-SCD",
+	"engines": {
+		"node": ">=16.14.0"
+	},
+	"private": true,
+	"preferGlobal": true,
+	"bin": {
+		"ASFinder-SCD": "./bin/ASFinder-SCD",
+		"ASFinder-polyX": "./bin/ASFinder-polyX"
+	}
+}

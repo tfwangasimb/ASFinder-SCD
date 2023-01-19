@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+
+const finder = require("../src/find_SCD.js");
+const fasta_util = require("../src/fasta_util.js");
+const { ArgvParser } = require("../src/ArgvParser.js");
+
+const argv_parser = new ArgvParser(process.argv);
+
+const MAX_DISTANCE = argv_parser.get(/--d=(\d+)/, (arg, args) => Number(args[0]));
+const input_fa =   argv_parser.get(/--i=(.+)/, (arg, args) => String(args[0]));
+
+if (MAX_DISTANCE > 4 && input_fa) {
+	console.log("argv", {
+		"--d": MAX_DISTANCE,
+		"--i": input_fa,
+	});
+	const header = [
+		"sequence name",
+		"start",
+		"end",
+		"S/TQ",
+		"fragment length",
+		"fragment",
+	].join("\t");
+	console.log(header);
+
+	Object.values(fasta_util.readFasta_Ex(input_fa)).forEach(data => {
+		let results = finder.find_SCD_v4(data.seq, MAX_DISTANCE);
+
+		results.forEach(a => {
+			console.log([
+				data.header,  // sequence name
+				a.start,      // start
+				a.end,        // end
+				a.list,       // list
+				a.seq.length, // fragment length
+				a.seq,        // fragment
+			].join("\t"));
+		});
+	});
+}
+else {
+	// ASFinder-SCD --d=100 --i=test.fa
+	console.log("ASFinder-SCD");
+	console.log("Usage: ASFinder-SCD");
+	console.log("\t--d: maximum distancd");
+	console.log("\t--i: input fasta");
+	console.log("got", {
+		"--d": MAX_DISTANCE,
+		"--i": input_fa,
+		argv: process.argv,
+	});
+}
